@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    border-color: rgba(75, 85, 99, 0.5);
+  }
+
+  body {
+    background-color: #030712;
+    color: #f9fafb;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
+}
+
+@layer components {
+  .glass {
+    background: rgba(31, 41, 55, 0.5);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(75, 85, 99, 0.5);
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply btn bg-indigo-500 text-white hover:bg-indigo-600 active:bg-indigo-700;
+  }
+
+  .btn-secondary {
+    @apply btn bg-gray-700 text-gray-100 hover:bg-gray-600;
+  }
+
+  .btn-outline {
+    @apply btn border border-gray-600 bg-transparent hover:bg-gray-700 hover:text-gray-100;
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent hover:bg-gray-700;
+  }
+
+  .input {
+    @apply flex h-10 w-full rounded-lg border border-gray-600 bg-transparent px-3 py-2 text-sm text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200;
+  }
+
+  .card {
+    @apply rounded-xl glass p-5;
+  }
+
+  .sidebar-item {
+    @apply flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-400 transition-all duration-200 hover:bg-gray-700 hover:text-gray-100;
+  }
+
+  .sidebar-item-active {
+    @apply sidebar-item bg-indigo-500/10 text-indigo-400 font-medium;
+  }
+}
