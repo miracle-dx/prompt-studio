@@ -9,7 +9,7 @@ interface ModalProps {
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
 }
 
 export function Modal({ isOpen, onClose, title, children, size = "md" }: ModalProps) {
@@ -36,6 +36,7 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }: ModalPr
     sm: "max-w-sm",
     md: "max-w-md",
     lg: "max-w-lg",
+    xl: "max-w-2xl",
   };
 
   return createPortal(
@@ -52,11 +53,11 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }: ModalPr
 
       {/* 弹窗主体 */}
       <div
-        className={`relative w-full ${sizeClasses[size]} bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 animate-slide-in overflow-hidden`}
+        className={`relative w-full ${sizeClasses[size]} bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 animate-slide-in overflow-hidden flex flex-col max-h-[90vh]`}
       >
         {/* 头部 */}
         {title && (
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
             <h3 className="font-semibold text-gray-900 dark:text-white">{title}</h3>
             <button
               onClick={onClose}
@@ -68,7 +69,7 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }: ModalPr
         )}
 
         {/* 内容 */}
-        <div className="px-5 py-4">{children}</div>
+        <div className="px-5 py-4 overflow-y-auto">{children}</div>
       </div>
     </div>,
     document.body

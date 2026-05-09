@@ -6,10 +6,12 @@ import {
   Pencil,
   Moon,
   Sun,
+  Trash2,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import { promptTemplates, getTemplatesByCategory } from "@/lib/types";
+import { ConfirmDialog } from "@/components/ui/modal";
 
 // 关键词高亮工具函数
 const highlightText = (text: string, query: string): React.ReactNode => {
@@ -37,6 +39,7 @@ export function Sidebar() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showPromptList, setShowPromptList] = useState(true);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [deleteFolderConfirm, setDeleteFolderConfirm] = useState<{ id: string; name: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -54,6 +57,7 @@ export function Sidebar() {
     updatePrompt,
     createFolder,
     updateFolder,
+    deleteFolder,
     activeView,
     setActiveView,
   } = useAppStore();
@@ -131,6 +135,18 @@ export function Sidebar() {
     }
   };
 
+  const handleDeleteFolder = (folderId: string, folderName: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDeleteFolderConfirm({ id: folderId, name: folderName });
+  };
+
+  const handleConfirmDeleteFolder = () => {
+    if (deleteFolderConfirm) {
+      deleteFolder(deleteFolderConfirm.id);
+      setDeleteFolderConfirm(null);
+    }
+  };
+
   // 获取每个文件夹下的 Prompt
   const getPromptsByFolder = (folderId: string) => {
     return prompts
@@ -140,7 +156,7 @@ export function Sidebar() {
 
 
 return (
-  <aside className="w-[280px] flex-shrink-0 border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
+  <aside className="w-[280px] lg:w-[320px] 2xl:w-[360px] 3xl:w-[400px] flex-shrink-0 border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
     {/* Logo 区域 */}
     <div className="h-14 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-700">
       <span className="text-lg font-bold text-gray-900 dark:text-white">
@@ -335,10 +351,7 @@ return (
             <div key={folder.id} className="group">
               <div
                 onClick={() => toggleFolder(folder.id)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleFolder(folder.id); }}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs transition-colors text-left cursor-pointer ${
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs transition-colors text-left cursor-pointer ${
                   expandedFolders.includes(folder.id)
                     ? "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white"
                     : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -375,9 +388,17 @@ return (
                     <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
                       <button
                         onClick={(e) => handleRenameFolder(folder.id, e)}
-                        className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
+                        className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                        title="重命名"
                       >
                         <Pencil className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={(e) => handleDeleteFolder(folder.id, folder.name, e)}
+                        className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors text-gray-500 hover:text-red-600 dark:hover:text-red-400"
+                        title="删除"
+                      >
+                        <Trash2 className="w-3 h-3" />
                       </button>
                     </div>
                   </>
@@ -457,6 +478,21 @@ return (
         <span>新建 Prompt</span>
       </button>
     </div>
+
+    {/* 删除文件夹确认对话框 */}
+    <ConfirmDialog
+      isOpen={deleteFolderConfirm !== null}
+      onClose={() => setDeleteFolderConfirm(null)}
+      onConfirm={handleConfirmDeleteFolder}
+      title="删除文件夹"
+      message={`确定要删除「${deleteFolderConfirm?.name}」吗？${
+        deleteFolderConfirm && getPromptsByFolder(deleteFolderConfirm.id).length > 0
+          ? `文件夹内还有 ${getPromptsByFolder(deleteFolderConfirm.id).length} 个 Prompt，删除后它们将移至未分类。`
+          : ''
+      }`}
+      confirmText="删除"
+      variant="danger"
+    />
   </aside>
 );
 }

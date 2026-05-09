@@ -78,7 +78,7 @@ export function FavoritesView() {
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <FileText className="w-4 h-4 text-gray-400" />
-                    <span className="font-medium text-gray-900 dark:text-white truncate max-w-[180px]">
+                    <span className="font-medium text-gray-900 dark:text-white truncate max-w-[180px] lg:max-w-[220px] 2xl:max-w-[260px]">
                       {prompt.title}
                     </span>
                   </div>

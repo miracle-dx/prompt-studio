@@ -72,7 +72,7 @@ export function HistoryView() {
             </p>
           </div>
         ) : (
-          <div className="max-w-3xl mx-auto space-y-2">
+          <div className="max-w-3xl lg:max-w-4xl 2xl:max-w-5xl 3xl:max-w-6xl mx-auto space-y-2">
             {history.map((entry) => {
               const prompt = prompts.find((p) => p.id === entry.promptId);
               return (

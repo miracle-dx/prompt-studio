@@ -213,7 +213,7 @@ export function LibraryView() {
 
             {/* 编辑器内容 */}
             <div className="flex-1 overflow-y-auto p-6">
-              <div className="max-w-4xl mx-auto">
+              <div className="max-w-4xl lg:max-w-5xl 2xl:max-w-6xl 3xl:max-w-7xl mx-auto">
                 {/* 元信息 */}
                 <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
                   <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">

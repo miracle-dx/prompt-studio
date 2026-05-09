@@ -36,7 +36,7 @@ export function SettingsView() {
 
       {/* 设置内容 */}
       <div className="flex-1 overflow-y-auto p-4">
-        <div className="max-w-2xl mx-auto space-y-6">
+        <div className="max-w-2xl lg:max-w-3xl 2xl:max-w-4xl 3xl:max-w-5xl mx-auto space-y-6">
           {/* 外观设置 */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">

@@ -26,6 +26,25 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* 大屏幕字体缩放 */
+@media (min-width: 1536px) {
+  html {
+    font-size: 17px;
+  }
+}
+
+@media (min-width: 1920px) {
+  html {
+    font-size: 18px;
+  }
+}
+
+@media (min-width: 2560px) {
+  html {
+    font-size: 20px;
+  }
+}
+
 /* 代码编辑器等宽字体 */
 .font-mono {
   font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', monospace;

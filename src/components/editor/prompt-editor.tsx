@@ -1,9 +1,9 @@
 "use client";
 
-import { FileText, Plus, Tag, Clock, Save, Eye, Edit3, Columns, Trash2, Sparkles, Zap } from "lucide-react";
+import { FileText, Plus, Tag, Clock, Save, Eye, Edit3, Columns, Trash2, Sparkles, Wrench } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { useState, useEffect } from "react";
-import { ConfirmDialog } from "@/components/ui/modal";
+import { ConfirmDialog, Modal } from "@/components/ui/modal";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -50,7 +50,8 @@ export function PromptEditor() {
       passed: hasRole,
       icon: "🎭",
       tip: hasRole ? "已设置明确角色" : "建议添加角色定位，例如「你是一位资深前端工程师」",
-      weight: 3
+      weight: 3,
+      fixSuggestion: "在 Prompt 开头添加角色定义，例如：\n\n你是一位资深[领域]专家，拥有10年经验...",
     });
 
     // 2. 输出格式检测
@@ -60,7 +61,8 @@ export function PromptEditor() {
       passed: hasFormat,
       icon: "📋",
       tip: hasFormat ? "已指定输出格式" : "建议明确输出格式（JSON/Markdown/代码块等）",
-      weight: 2
+      weight: 2,
+      fixSuggestion: "在 Prompt 末尾添加输出格式要求，例如：\n\n请按以下 Markdown 格式输出：\n- 要点1\n- 要点2",
     });
 
     // 3. 边界条件检测
@@ -70,7 +72,8 @@ export function PromptEditor() {
       passed: hasBoundary,
       icon: "🚧",
       tip: hasBoundary ? "已设置边界条件" : "建议添加约束（如「不要使用专业术语」「控制在300字以内」）",
-      weight: 2
+      weight: 2,
+      fixSuggestion: "添加明确的约束条件，例如：\n\n注意事项：\n1. 不要使用专业术语\n2. 回答控制在300字以内\n3. 用中文回复",
     });
 
     // 4. 示例检测
@@ -80,7 +83,8 @@ export function PromptEditor() {
       passed: hasExample,
       icon: "📝",
       tip: hasExample ? "已包含示例" : "复杂任务建议添加示例，效果提升 30%+",
-      weight: 1
+      weight: 1,
+      fixSuggestion: "添加示例说明，例如：\n\n示例输入：用户问题\n示例输出：期望的回答格式",
     });
 
     // 5. 反模式检测
@@ -97,7 +101,8 @@ export function PromptEditor() {
           passed: false,
           icon: "⚠️",
           tip: ap.tip,
-          weight: 2
+          weight: 2,
+          fixSuggestion: ap.tip + "\n\n建议：将模糊表述替换为具体要求。",
         });
         break;
       }
@@ -113,51 +118,6 @@ export function PromptEditor() {
 
   const [showQualityPanel, setShowQualityPanel] = useState(false);
   const qualityAnalysis = activePrompt?.content ? analyzePromptQuality(activePrompt.content) : null;
-
-  // ============ 🤖 模型推荐器 ============
-  const recommendModel = (content: string) => {
-    const recommendations = [
-      {
-        name: "Claude 3.5 Sonnet",
-        icon: "🟣",
-        reason: /代码|编程|函数|class|function|def |代码审查|重构/i.test(content),
-        cost: "¥0.015/1K tokens",
-        strength: "代码质量最佳"
-      },
-      {
-        name: "GPT-4o",
-        icon: "🟢",
-        reason: /创意|文案|写作|故事|小说|营销|广告|品牌/i.test(content),
-        cost: "¥0.025/1K tokens",
-        strength: "创意表达最佳"
-      },
-      {
-        name: "Gemini 1.5 Pro",
-        icon: "🔵",
-        reason: /长文本|摘要|总结|文档|PDF|分析|研究|数据/i.test(content),
-        cost: "¥0.012/1K tokens",
-        strength: "长上下文处理最佳"
-      },
-      {
-        name: "DeepSeek V3",
-        icon: "🟠",
-        reason: /数学|推理|逻辑|证明|计算|算法/i.test(content),
-        cost: "¥0.007/1K tokens",
-        strength: "数学推理最佳"
-      }
-    ];
-
-    const matched = recommendations.find(r => r.reason);
-    return matched || {
-      name: "Claude 3.5 Sonnet",
-      icon: "🟣",
-      reason: true,
-      cost: "¥0.015/1K tokens",
-      strength: "通用场景首选"
-    };
-  };
-
-  const modelRec = activePrompt?.content ? recommendModel(activePrompt.content) : null;
 
   // Ctrl+S 快捷键保存
   useEffect(() => {
@@ -333,12 +293,8 @@ export function PromptEditor() {
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setShowQualityPanel(!showQualityPanel)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                      showQualityPanel
-                        ? 'bg-amber-500 text-white'
-                        : 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50'
-                    }`}
+                    onClick={() => setShowQualityPanel(true)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50`}
                   >
                     <Sparkles className="w-4 h-4" />
                     智能质检
@@ -402,7 +358,7 @@ export function PromptEditor() {
 
             {/* 编辑器内容 */}
             <div className="flex-1 overflow-y-auto p-6">
-              <div className="max-w-6xl mx-auto">
+              <div className="max-w-5xl lg:max-w-6xl 2xl:max-w-7xl 3xl:max-w-[90rem] mx-auto">
                 {/* 元信息 */}
                 <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
                   <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -538,89 +494,110 @@ export function PromptEditor() {
                 </div>
               </div>
 
-              {/* ============ 🧪 智能质检面板 ============ */}
-              {showQualityPanel && qualityAnalysis && (
-                <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-amber-50/50 dark:bg-amber-900/10">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold ${
-                      qualityAnalysis.score >= 80 ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
-                      qualityAnalysis.score >= 60 ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' :
-                      'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
-                    }`}>
-                      {qualityAnalysis.score}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">Prompt 质量评分</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {qualityAnalysis.score >= 80 ? '👍 很棒！你的 Prompt 质量很高' :
-                         qualityAnalysis.score >= 60 ? '🤔 不错，还有优化空间' :
-                         '💡 建议按照以下提示优化'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    {qualityAnalysis.checks.map((check, i) => (
-                      <div
-                        key={i}
-                        className={`p-3 rounded-lg border ${
-                          check.passed
-                            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                            : 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          <span>{check.icon}</span>
-                          <span className={`text-sm font-medium ${
-                            check.passed ? 'text-green-700 dark:text-green-400' : 'text-orange-700 dark:text-orange-400'
-                          }`}>
-                            {check.name}
-                          </span>
-                          <span className={`ml-auto text-xs px-1.5 py-0.5 rounded ${
-                            check.passed
-                              ? 'bg-green-200 dark:bg-green-800 text-green-700 dark:text-green-300'
-                              : 'bg-orange-200 dark:bg-orange-800 text-orange-700 dark:text-orange-300'
-                          }`}>
-                            {check.passed ? '✓ 已满足' : '✗ 建议'}
-                          </span>
-                        </div>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          {check.tip}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ============ 🤖 模型推荐卡片 ============ */}
-              {modelRec && (
-                <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl border border-purple-200 dark:border-purple-800">
-                    <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center text-xl shadow-sm">
-                      {modelRec.icon}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-900 dark:text-white">{modelRec.name}</span>
-                        <span className="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full">
-                          推荐
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {modelRec.strength} · {modelRec.cost}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400">
-                      <Zap className="w-3 h-3" />
-                      <span>智能匹配</span>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </>
         )}
       </div>
+
+      {/* ============ 🧪 智能质检弹窗 ============ */}
+      <Modal
+        isOpen={showQualityPanel && qualityAnalysis !== null}
+        onClose={() => setShowQualityPanel(false)}
+        title="✨ Prompt 智能质检"
+        size="xl"
+      >
+        {qualityAnalysis && (
+          <>
+            {/* 分数展示 */}
+            <div className="flex items-center gap-4 mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold ${
+                qualityAnalysis.score >= 80 ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
+                qualityAnalysis.score >= 60 ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' :
+                'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+              }`}>
+                {qualityAnalysis.score}
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900 dark:text-white text-lg">质量评分</h4>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {qualityAnalysis.score >= 80 ? '👍 很棒！你的 Prompt 质量很高' :
+                   qualityAnalysis.score >= 60 ? '🤔 不错，还有优化空间' :
+                   '💡 建议按照以下提示优化'}
+                </p>
+              </div>
+            </div>
+
+            {/* 检测项列表 */}
+            <div className="space-y-3">
+              {qualityAnalysis.checks.map((check, i) => (
+                <div
+                  key={i}
+                  className={`p-4 rounded-xl border transition-all duration-200 ${
+                    check.passed
+                      ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                      : 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800 hover:border-orange-300 dark:hover:border-orange-700'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 flex-1">
+                      <span className="text-xl mt-0.5">{check.icon}</span>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`font-medium ${
+                            check.passed ? 'text-green-700 dark:text-green-400' : 'text-orange-700 dark:text-orange-400'
+                          }`}>
+                            {check.name}
+                          </span>
+                          <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                            check.passed
+                              ? 'bg-green-200 dark:bg-green-800 text-green-700 dark:text-green-300'
+                              : 'bg-orange-200 dark:bg-orange-800 text-orange-700 dark:text-orange-300'
+                          }`}>
+                            {check.passed ? '✓ 已满足' : '✗ 建议优化'}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                          {check.tip}
+                        </p>
+                        {!check.passed && (
+                          <div className="mt-2 p-3 bg-white dark:bg-gray-800 rounded-lg border border-orange-200 dark:border-orange-700">
+                            <div className="flex items-center gap-1 text-xs font-medium text-orange-600 dark:text-orange-400 mb-2">
+                              <Wrench className="w-3 h-3" />
+                              修复建议
+                            </div>
+                            <pre className="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap font-mono bg-gray-50 dark:bg-gray-900 p-2 rounded">
+                              {check.fixSuggestion}
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {!check.passed && activePrompt && (
+                      <button
+                        onClick={() => {
+                          const newContent = activePrompt.content + '\n\n' + check.fixSuggestion.split('例如：\n')[1] || check.fixSuggestion;
+                          updatePrompt(activePrompt.id, { content: newContent });
+                        }}
+                        className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                      >
+                        <Wrench className="w-3 h-3" />
+                        一键修复
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 底部提示 */}
+            <div className="mt-6 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-xs text-blue-600 dark:text-blue-400">
+                💡 提示：点击「一键修复」会将优化建议追加到 Prompt 末尾，你可以根据实际需要调整位置。
+              </p>
+            </div>
+          </>
+        )}
+      </Modal>
 
       {/* 删除确认弹窗 */}
       <ConfirmDialog
